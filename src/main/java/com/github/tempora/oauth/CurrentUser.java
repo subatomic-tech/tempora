@@ -202,4 +202,16 @@ public class CurrentUser implements Serializable {
         return 0;
     }
 
+    /**
+     * Returns the Email address of the current user.
+     * @return a {@link String}.
+     */
+    public String getUserIdentifier() {
+        Profile currentProfile = getProfile().get();
+        if (currentProfile != null) {
+            return currentProfile.getEmailAddress();
+        }
+        return null;
+    }
+
 }
