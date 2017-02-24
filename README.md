@@ -23,6 +23,22 @@ $ ./gradlew bootRun
 
 The command will download all the necessary dependencies and run the application on port `8080`.
 
+## Docker support
+
+Tempora can also run inside a Docker container. First you need to build the Tempora Docker image using:
+
+```
+$ ./gradlew buildDocker
+```
+
+To run a container based on the produced image:
+
+```
+$ docker run -d -p 8080:9000 amrfaissal/tempora
+```
+
+The container exposes, by default, port `8080`.
+
 ## Licence
 
 ```
