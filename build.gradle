@@ -7,11 +7,13 @@ buildscript {
 	}
 	dependencies {
 		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+		classpath("se.transmode.gradle:gradle-docker:1.2")
 	}
 }
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
+apply plugin: 'docker'
 apply plugin: 'org.springframework.boot'
 
 jar {
@@ -44,3 +46,16 @@ dependencyManagement {
 		mavenBom "com.vaadin:vaadin-bom:7.7.5"
 	}
 }
+
+task buildDocker(type: Docker) {
+	baseImage = 'library/java:8'
+	tag = 'amrfaissal/tempora'
+	addFile {
+		from jar
+		rename {'tempora.jar'}
+	}
+	entryPoint(['java', '-Djava.security.egd=file:/dev/./urandom', '-jar', '/tempora.jar'])
+	exposePort(8080)
+}
+
+buildDocker.dependsOn(build)
