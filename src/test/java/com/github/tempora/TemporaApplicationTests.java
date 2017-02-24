@@ -1,4 +1,4 @@
-package com.github;
+package com.github.tempora;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

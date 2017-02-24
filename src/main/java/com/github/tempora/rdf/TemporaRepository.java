@@ -19,6 +19,7 @@ import com.github.tempora.oauth.CurrentUser;
 import com.github.tempora.svc.GMessage;
 
 import com.vaadin.spring.annotation.SpringComponent;
+import com.vaadin.spring.annotation.UIScope;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Statement;
@@ -35,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Set;
 
 @SpringComponent
+@UIScope
 public class TemporaRepository {
 
     private static final String DEFAULT_PREFIX = "http://www.example.com/";
