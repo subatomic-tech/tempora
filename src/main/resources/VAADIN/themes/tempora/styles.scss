@@ -1,0 +1,7 @@
+@import "tempora.scss";
+@import "addons.scss";
+
+.tempora {
+  @include addons;
+  @include tempora;
+}
