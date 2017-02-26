@@ -20,12 +20,9 @@ import com.github.tempora.svc.GMessage;
 
 import com.vaadin.spring.annotation.SpringComponent;
 import com.vaadin.spring.annotation.UIScope;
-import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Model;
-import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.*;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.impl.TreeModel;
+import org.eclipse.rdf4j.model.util.ModelBuilder;
 import org.eclipse.rdf4j.model.vocabulary.FOAF;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.repository.Repository;
@@ -33,32 +30,34 @@ import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Collection;
+import java.util.Objects;
 import java.util.Set;
 
 @SpringComponent
 @UIScope
 public class TemporaRepository {
 
-    private static final String DEFAULT_PREFIX = "http://www.example.com/";
-
     @Autowired
     CurrentUser currentUser;
 
+    private static final String DEFAULT_PREFIX = "https://www.gmail.com/";
+
     private Repository repository;
     private ValueFactory valueFactory;
-
     private Model temporaModel;
-    private IRI currentUserIRI;
 
-    public TemporaRepository() {
+    @Autowired
+    public TemporaRepository(CurrentUser currentUser) {
         this.repository = new SailRepository(new MemoryStore());
         this.repository.initialize();
 
         this.valueFactory = SimpleValueFactory.getInstance();
-        this.temporaModel = new TreeModel();
-        this.currentUserIRI = this.valueFactory.createIRI(DEFAULT_PREFIX, currentUser.getUserIdentifier());
 
-        this.temporaModel.add(this.currentUserIRI, RDF.TYPE, FOAF.MBOX);
+        this.temporaModel = new ModelBuilder().setNamespace("mail", DEFAULT_PREFIX)
+                .subject("mail:" + currentUser.getUserIdentifier())
+                .add(RDF.TYPE, FOAF.MBOX)
+                .build();
     }
 
     /**
@@ -66,9 +65,22 @@ public class TemporaRepository {
      * @param message the {@link GMessage}.
      */
     public void storeMessage(GMessage message) {
-        this.temporaModel.add(this.currentUserIRI, FOAF.PERSON, valueFactory.createLiteral(message.getFrom()));
-        this.temporaModel.add(this.currentUserIRI, RDF.SUBJECT, valueFactory.createLiteral(message.getSubject()));
-        this.temporaModel.add(this.currentUserIRI, RDF.VALUE, valueFactory.createLiteral(message.getBody()));
+        BNode msg = this.valueFactory.createBNode(message.getId());
+        this.temporaModel.add(msg, FOAF.PERSON, this.valueFactory.createLiteral(message.getFrom()));
+        this.temporaModel.add(msg, RDF.SUBJECT, this.valueFactory.createLiteral(message.getSubject()));
+        this.temporaModel.add(msg, RDF.HTML, this.valueFactory.createLiteral(message.getBody()));
+        this.temporaModel.add(msg, RDF.VALUE, this.valueFactory.createLiteral(message.getBodySize()));
+    }
+
+    /**
+     * Stores an entire collection of {@link GMessage}(s).
+     *
+     * @param messages The collection of messages.
+     */
+    public void storeAll(Collection<GMessage> messages) {
+        if (Objects.isNull(messages))
+            throw new RuntimeException("Cannot store an empty collection of messages.");
+        messages.parallelStream().forEach(m -> storeMessage(m));
     }
 
     /**
@@ -76,7 +88,7 @@ public class TemporaRepository {
      *
      * @return a {@link Set} of statements.
      */
-    public Set<Statement> getStatements() {
+    public synchronized Set<Statement> getStatements() {
         return this.temporaModel;
     }
 
