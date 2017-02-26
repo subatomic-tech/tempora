@@ -21,6 +21,8 @@ import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Set of helper functions that do a variety of things.
@@ -72,6 +74,31 @@ public class Utilities {
                 .append("before:")
                 .append(Utilities.gmailDateFormat(before));
         return sb.toString();
+    }
+
+
+    /**
+     * Extracts a tag from the passed string.
+     * A tag is in the format "[valueOfTag]", and the function should
+     * return the "valueOfTag" value.
+     *
+     * @param value the string containing a tag.
+     * @return a {@link String}.
+     */
+    public static String extractTag(String value) {
+        if (value != null) {
+            Pattern p = Pattern.compile("\\[(.*?)\\]");
+            Matcher m = p.matcher(value);
+            try {
+                if (m.find()) {
+                    String theTag = m.group();
+                    return theTag.replace("[", "").replace("]", "");
+                }
+            } catch (IllegalStateException ex) {
+                return "";
+            }
+        }
+        return "";
     }
 
 }

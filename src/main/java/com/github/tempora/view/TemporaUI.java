@@ -15,9 +15,13 @@
  */
 package com.github.tempora.view;
 
+import com.github.tempora.analytics.RDFAnalytics;
+import com.github.tempora.analytics.TemporaAnalytics;
 import com.github.tempora.oauth.CurrentUser;
+import com.github.tempora.rdf.TemporaRepository;
 import com.github.tempora.svc.GMessage;
 import com.github.tempora.svc.GmailDataProvider;
+import com.github.tempora.svc.TemporaProperties;
 import com.google.api.services.gmail.model.Profile;
 import com.vaadin.annotations.*;
 import com.vaadin.server.Responsive;
@@ -38,9 +42,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Theme("tempora")
 @Title("Tempora")
@@ -60,58 +61,62 @@ public class TemporaUI extends UI {
     @Autowired
     GmailDataProvider gmailDataProvider;
 
+    @Autowired
+    TemporaRepository temporaRepository;
+
+    @Autowired
+    TemporaAnalytics temporaAnalytics;
+
+    @Autowired
+    RDFAnalytics rdfAnalytics;
+
+    @Autowired
+    TemporaProperties temporaProperties;
+
     private ScheduledFuture<?> top5JobHandle;
     private ScheduledFuture<?> generalInfoJobHandle;
 
     private Runnable updateTop5Job = () -> access(() -> {
         DateTime today = new DateTime();
-        List<GMessage> messagesList = gmailDataProvider.getQueryMessagesList(today.minusDays(1).toDate(), today.toDate());
-        String top5senders = messagesList.parallelStream()
-                .map(msg -> msg.getFrom()) // Map the list to senders
-                .collect(Collectors.groupingBy(s -> s, Collectors.counting()))
-                .entrySet()
-                .stream()
-                .sorted(Map.Entry.<String,Long>comparingByValue().reversed())
-                .limit(5)
-                .map(e -> e.getKey())
-                .collect(Collectors.joining("\n"));
+        Collection<GMessage> messagesList = gmailDataProvider.getQueryMessagesList(
+                today.minusDays(temporaProperties.getHistoryInDays()).toDate(),
+                today.toDate());
 
+        // Store all the emails in the RDF repository
+        temporaRepository.storeAll(messagesList);
+
+        //
+        // Populate the dashboard with the results
+        //
+        final boolean useRdfStore = temporaProperties.isUseRdfStore();
+        String top5senders = null;
+        if (useRdfStore) {
+            top5senders = rdfAnalytics.getTop5Senders(temporaRepository.getStatements());
+        } else {
+            top5senders = temporaAnalytics.getTop5Senders(messagesList);
+        }
         if (!top5senders.isEmpty()) {
             mainView.getTop5Senders().setValue(top5senders);
             notifyEndUser("Top 5 Senders Updated");
         }
 
-        String top5TitleTags = messagesList.parallelStream()
-                .map(msg -> {
-                    String subject = msg.getSubject();
-                    if (subject != null) {
-                        Pattern p = Pattern.compile("\\[(.*?)\\]");
-                        Matcher m = p.matcher(subject);
-                        try {
-                            if (m.find()) {
-                                String theTag = m.group();
-                                return theTag.replace("[", "").replace("]", "");
-                            }
-                        } catch (IllegalStateException ex) {
-                            return "";
-                        }
-                    }
-                    return "";
-                }).collect(Collectors.groupingBy(s -> s, Collectors.counting()))
-                .entrySet()
-                .stream()
-                .sorted(Map.Entry.<String,Long>comparingByValue().reversed())
-                .limit(5)
-                .map(e -> e.getKey())
-                .collect(Collectors.joining("\n"));
+        String top5TitleTags = null;
+        if (useRdfStore) {
+            top5TitleTags = rdfAnalytics.getTop5TitleTags(temporaRepository.getStatements());
+        } else {
+            top5TitleTags = temporaAnalytics.getTop5TitleTags(messagesList);
+        }
         if (!top5TitleTags.isEmpty()) {
             mainView.getTop5TitleTags().setValue(top5TitleTags);
             notifyEndUser("Top 5 Tag Titles Updated");
         }
 
-        OptionalDouble avgBodySize = messagesList.parallelStream()
-                .mapToInt(msg -> msg.getBodySize())
-                .average();
+        OptionalDouble avgBodySize = null;
+        if (useRdfStore) {
+            avgBodySize = rdfAnalytics.getAverageBodySize(temporaRepository.getStatements());
+        } else {
+            avgBodySize = temporaAnalytics.getAverageBodySize(messagesList);
+        }
         if (avgBodySize.isPresent()) {
             mainView.getBodyAvgSize().setValue(String.format("%.2f", avgBodySize.getAsDouble()));
             notifyEndUser("Statistics Updated");
@@ -127,7 +132,6 @@ public class TemporaUI extends UI {
         mainView.getThreadsTotal().setValue(profile.getThreadsTotal().toString());
         notifyEndUser("General Information Updated");
     });
-
 
     @Override
     protected void init(VaadinRequest request) {
