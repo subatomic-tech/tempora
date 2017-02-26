@@ -42,7 +42,6 @@ import java.io.Serializable;
 import java.util.*;
 
 @SpringComponent
-@Scope(value="singleton", proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class CurrentUser implements Serializable {
 
     private static final String APPLICATION_NAME = "Tempora";

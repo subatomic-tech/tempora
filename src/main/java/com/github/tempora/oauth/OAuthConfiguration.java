@@ -29,7 +29,7 @@ public class OAuthConfiguration {
     OAuthProperties oauthProperties;
 
     @Bean
-    @Scope(value = "session", proxyMode = ScopedProxyMode.TARGET_CLASS)
+    @Scope(value = "singleton", proxyMode = ScopedProxyMode.TARGET_CLASS)
     public CurrentUser currentUser() {
         return new CurrentUser(oauthProperties);
     }
