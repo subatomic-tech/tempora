@@ -15,10 +15,12 @@ Tempora does not connect to any third-party service other than Google, and all t
 
 Tempora is a Java Web Application built using [Vaadin 7](https://vaadin.com) and uses [Gradle](https://gradle.org) as a build tool.
 
-To run the application:
+To build and run the application:
 
 ```shell
-$ ./gradlew bootRun  
+$ ./gradlew build
+$ cd build/libs
+$ java -jar tempora-${JAR_VERSION}.jar
 ```
 
 The command will download all the necessary dependencies and run the application on port `8080`.
