@@ -67,4 +67,5 @@ task buildDocker(type: Docker) {
 	exposePort(8080)
 }
 
+compileJava.dependsOn(compileSass)
 buildDocker.dependsOn(build)
