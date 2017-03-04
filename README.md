@@ -1,6 +1,8 @@
 Realtime Analytics for Gmail Accounts
 ------
 
+[![Build Status](https://travis-ci.org/amrfaissal/tempora.svg?branch=master)](https://travis-ci.org/amrfaissal/tempora)
+
 ## Introduction
 
 Tempora is a simple web application that displays analytics about your Gmail account.
