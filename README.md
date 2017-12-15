@@ -1,7 +1,7 @@
 Realtime Analytics for Gmail Accounts
 ------
 
-[![Build Status](https://travis-ci.org/amrfaissal/tempora.svg?branch=master)](https://travis-ci.org/amrfaissal/tempora)
+[![Build Status](https://travis-ci.org/subatomic-tech/tempora.svg?branch=master)](https://travis-ci.org/subatomic-tech/tempora)
 
 ## Introduction
 
@@ -29,7 +29,7 @@ The command will download all the necessary dependencies and run the application
 
 ## Docker support
 
-Tempora can also run inside a Docker container. First you need to build the Tempora Docker image using:
+Tempora can also run inside a Docker container. First you need to build the Tempora Docker Image using:
 
 ```
 $ ./gradlew buildDocker
@@ -38,7 +38,7 @@ $ ./gradlew buildDocker
 To run a container based on the produced image:
 
 ```
-$ docker run -d -p 8080:9000 amrfaissal/tempora
+$ docker run -d -p 8080:9000 subatomic/tempora
 ```
 
 The container exposes, by default, port `8080`.

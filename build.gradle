@@ -1,18 +1,18 @@
 buildscript {
-	ext {
-		springBootVersion = '1.5.1.RELEASE'
-	}
-	repositories {
-		mavenCentral()
-		maven {
-			url "https://plugins.gradle.org/m2/"
-		}
-	}
-	dependencies {
-		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-		classpath("gradle.plugin.name.mazgalov:gradle-sass-vaadin-compiler:0.1.1")
-		classpath("se.transmode.gradle:gradle-docker:1.2")
-	}
+    ext {
+        springBootVersion = '1.5.1.RELEASE'
+    }
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath("gradle.plugin.name.mazgalov:gradle-sass-vaadin-compiler:0.1.1")
+        classpath("se.transmode.gradle:gradle-docker:1.2")
+    }
 }
 
 apply plugin: 'java'
@@ -22,49 +22,49 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'name.mazgalov.vaadin.sass.compiler'
 
 jar {
-	baseName = 'tempora'
-	version = '0.0.1-SNAPSHOT'
+    baseName = 'tempora'
+    version = '0.0.1-SNAPSHOT'
 }
 
 sourceCompatibility = 1.8
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 compileSass {
-	scssFile = 'src/main/resources/VAADIN/themes/tempora/styles.scss'
-	cssFile = 'src/main/resources/VAADIN/themes/tempora/styles.css'
+    scssFile = 'src/main/resources/VAADIN/themes/tempora/styles.scss'
+    cssFile = 'src/main/resources/VAADIN/themes/tempora/styles.css'
 }
 
 dependencies {
-	compile('com.vaadin:vaadin-spring-boot-starter:1.2.0')
-	compile('com.vaadin:vaadin-push:7.7.5')
-	compile('org.eclipse.rdf4j:rdf4j-runtime:2.2')
-	compile('com.google.api-client:google-api-client:1.22.0')
-	compile('com.google.apis:google-api-services-gmail:v1-rev59-1.22.0')
-	compile('joda-time:joda-time:2.9.7')
+    compile('com.vaadin:vaadin-spring-boot-starter:1.2.0')
+    compile('com.vaadin:vaadin-push:7.7.5')
+    compile('org.eclipse.rdf4j:rdf4j-runtime:2.2')
+    compile('com.google.api-client:google-api-client:1.22.0')
+    compile('com.google.apis:google-api-services-gmail:v1-rev59-1.22.0')
+    compile('joda-time:joda-time:2.9.7')
 
-	runtime('ch.qos.logback:logback-classic:1.1.9')
+    runtime('ch.qos.logback:logback-classic:1.1.9')
 
-	testCompile('org.springframework.boot:spring-boot-starter-test')
+    testCompile('org.springframework.boot:spring-boot-starter-test')
 }
 
 dependencyManagement {
-	imports {
-		mavenBom "com.vaadin:vaadin-bom:7.7.5"
-	}
+    imports {
+        mavenBom "com.vaadin:vaadin-bom:7.7.5"
+    }
 }
 
 task buildDocker(type: Docker) {
-	baseImage = 'library/java:8'
-	tag = 'amrfaissal/tempora'
-	addFile {
-		from jar
-		rename {'tempora.jar'}
-	}
-	entryPoint(['java', '-Djava.security.egd=file:/dev/./urandom', '-jar', '/tempora.jar'])
-	exposePort(8080)
+    baseImage = 'library/java:8'
+    tag = 'subatomic/tempora'
+    addFile {
+        from jar
+        rename { 'tempora.jar' }
+    }
+    entryPoint(['java', '-Djava.security.egd=file:/dev/./urandom', '-jar', '/tempora.jar'])
+    exposePort(8080)
 }
 
 compileJava.dependsOn(compileSass)
